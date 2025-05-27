@@ -1,15 +1,20 @@
-from flask import Flask, request, jsonify
-from app import get_definition
+from mcp.server.fastmcp import FastMCP
+from app import getDefinitions
 
-app = Flask(__name__)
+# Initialize MCP server
+mcp = FastMCP("dictionary-mcp")
 
-@app.route("/define", methods=["GET"])
-def define():
-    word = request.args.get("word")
-    if not word:
-        return jsonify({"error": "Kelime girilmedi."}), 400
-    definitions = get_definition(word)
-    return jsonify({"word": word, "definitions": definitions})
+@mcp.tool()
+async def get_definitions(word: str) -> str:
+    """
+    Get definitions for a word.
+    """
+    # Get definitions from the app
+    definitions = getDefinitions(word)
+    if not definitions:
+        return "No definitions found."
+
+    return definitions
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    mcp.run(transport="stdio")
